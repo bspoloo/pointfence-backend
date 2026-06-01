@@ -1,0 +1,9 @@
+# the cache
+__pycache__/
+# the virtual environment
+venv/
+# the distribution files
+dist/
+build/
+# the egg-info files
+*.egg-info/
