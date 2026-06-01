@@ -1,5 +1,5 @@
 from fastapi import APIRouter, FastAPI
-from app.api.v1.endpoints import file
+from app.api.v1.endpoints import segment
 
 routes = APIRouter()
-routes.include_router(file.router, prefix="/file", tags=["file"])
+routes.include_router(segment.router, prefix="/segment", tags=["segment"])
