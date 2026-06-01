@@ -7,3 +7,5 @@ dist/
 build/
 # the egg-info files
 *.egg-info/
+uploads/
+*.pth
