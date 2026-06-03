@@ -9,11 +9,15 @@ from app.core.models.MDE.depth_anything import DepthAnything_V2
 from app.core.classes.models_manager import ModelManager
 from app.core.classes.mask_manager import MaskManager
 from app.functions.save_point_cloud import export_point_cloud
+from app.core.classes.connection_manager import ConnectionManager
 import numpy as np
 import cv2
 
-def generate_poinst_cloud(image: MatLike, mask: MatLike | None , config, filenames: Tuple[str, str]):
+
+async def send_poinst_cloud_unreal(image: MatLike, mask: MatLike | None , config, filenames: Tuple[str, str]):
     h_orig, w_orig = image.shape[:2]
+    manager = ConnectionManager()
+    mask_manger : MaskManager = MaskManager()
 
     try:
         output_image = os.path.join(
@@ -48,7 +52,7 @@ def generate_poinst_cloud(image: MatLike, mask: MatLike | None , config, filenam
             interpolation=cv2.INTER_CUBIC
         )
         
-        mask_manger : MaskManager = MaskManager()
+        
         points = mask_manger.get_point_mask(output_mask) if mask is not None else None
 
         os.makedirs(
@@ -56,7 +60,7 @@ def generate_poinst_cloud(image: MatLike, mask: MatLike | None , config, filenam
             exist_ok=True
         )
 
-        export_point_cloud(
+        points_3d, colors = export_point_cloud(
             depth_map=depth,
             color_image=image,
             output_ply_path=os.path.join(UPLOAD_DIR,"points", config["model"],f"{filenames[0].split(".")[0]}_{config["step"]}_{config["depth_visual"]}_{"image" if mask is None else "points"}.ply"),
@@ -64,6 +68,8 @@ def generate_poinst_cloud(image: MatLike, mask: MatLike | None , config, filenam
             step=int(config["step"]),
             depth_visual = float(config["depth_visual"])
         )
+
+        success = await manager.send_point_cloud_binary(points_3d, colors)
 
         del depth, mde
 
@@ -76,5 +82,7 @@ def generate_poinst_cloud(image: MatLike, mask: MatLike | None , config, filenam
     
     return {
         "status": "ok",
-        "message": f"Imagenes enviadas correctamente a unreal -> {output_image} - {output_mask}"
+        "message": f"Imagenes enviadas correctamente a unreal -> {output_image} - {output_mask}",
+        "num_points": len(points_3d),
+        "ue4_connected": success
     }
