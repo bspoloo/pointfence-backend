@@ -16,8 +16,3 @@ async def segment_image(image: UploadFile = File(...), coords: str = Form(...)):
     image_bgr = cv2.imdecode( np_image, cv2.IMREAD_COLOR)
     
     return segment_image_procesed(image_bgr, image.filename, (coordinates['xs'], coordinates['ys']))
-
-
-# @router.get("/{file_id}")
-# async def get_file(file_id: int):
-#     return {"file_id": file_id}
