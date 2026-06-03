@@ -150,6 +150,12 @@ def export_point_cloud(depth_map, color_image, output_ply_path, mask_points=None
 
         f.write(vertex_data.tobytes())
 
+        # remove return if only we need to save it
+        return (
+            points_3d.astype(np.float32),
+            colors.astype(np.uint8),
+        )
+
 
 def export_point_cloud_meters(depth_map, color_image, output_ply_path, name_model,fx=None, fy=None, cx=None, cy=None, mask_points=None,step=4):
 
