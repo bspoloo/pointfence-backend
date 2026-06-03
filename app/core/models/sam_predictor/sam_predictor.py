@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 import numpy as np
 from segment_anything import sam_model_registry, SamPredictor
 from app.core.config import SAM_CHECKPOINT, DEVICE
-
+import torch
 class SAMPredictor:
     predictor = None
     type: str
@@ -31,3 +31,15 @@ class SAMPredictor:
         )
         # return the best mask
         return masks[np.argmax(scores)]
+    
+    def clear_memory(self)->None:
+        if self.predictor is not None:
+            del self.predictor
+
+        self.predictor = None
+
+        import gc
+        gc.collect()
+
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()

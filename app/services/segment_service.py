@@ -2,7 +2,7 @@ from typing import Tuple, List
 from cv2.typing import MatLike
 import cv2
 import numpy as np
-from app.core.classes.sam_predictor import SAMPredictor
+from app.core.models.sam_predictor.sam_predictor import SAMPredictor
 from app.core.config import UPLOAD_DIR
 from fastapi.responses import FileResponse
 import os
@@ -28,15 +28,15 @@ def segment_image_procesed(image: MatLike, filename: str, coords: Tuple[List[int
     input_labels = np.ones(len(input_points))
 
     try:
-
         sam_predictor : SAMPredictor = SAMPredictor()
         sam_predictor.set_up_model()
         sam_predictor.set_image(image)
         mask = sam_predictor.predict_mask(input_points, input_labels)
+        sam_predictor.clear_memory()
         os.makedirs(UPLOAD_DIR, exist_ok=True)
         output_mask = os.path.join(
-            UPLOAD_DIR,
-            filename.replace(".JPG", "_mask.png")
+            UPLOAD_DIR+"/masks",
+            filename.replace(".jpg", "_mask.png")
         )
         mask_uint8 = (mask.astype(np.uint8)) * 255
         cv2.imwrite(output_mask, mask_uint8)
@@ -44,9 +44,7 @@ def segment_image_procesed(image: MatLike, filename: str, coords: Tuple[List[int
     except Exception as e:
         print(f"[ERROR] {e}")
         return
-
-    # aquí va lógica real (validaciones, reglas, etc.)
-    # return save_file(file)
+    
     return FileResponse(
         path=output_mask,
         media_type="image/png",
