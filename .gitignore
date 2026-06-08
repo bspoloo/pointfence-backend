@@ -9,3 +9,5 @@ build/
 *.egg-info/
 uploads/
 *.pth
+*.pt
+*.onnx

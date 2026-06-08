@@ -1,5 +1,6 @@
 from app.core.models.MDE.mde import MDE
 from app.core.models.MDE.depth_anything import DepthAnything_V2
+from app.core.models.MDE.midasv3 import MidasV3
 
 class ModelManagerMeta(type):
     _instances = {}
@@ -14,6 +15,7 @@ class ModelManager(metaclass=ModelManagerMeta):
     def __init__(self):
         self.models = {
             "depth_anything": DepthAnything_V2(),
+            "midas": MidasV3(),
         }
 
     def get_mde(self, model_name : str)->MDE:
