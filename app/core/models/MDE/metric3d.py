@@ -4,16 +4,25 @@ import cv2
 from PIL import Image
 import numpy as np
 from typing import Tuple, Dict, List
+import onnxruntime as ort
+from app.core.config import DEVICE, CHECKPOINTS_DIR
+from app.functions.save_point_cloud import export_point_cloud_meters
 
 class Metric3D(MDE):
-    def __init__(self, model_name: str):
-        super().__init__(model_name)
-        self.ort_session = None
-        self.model_name = model_name
+    def __init__(self):
+        super().__init__()
+        self.model = None
+        self.model_name = self.__class__.__name__
 
-    def setup_model(self, ort_session)-> None:
-        super().setup_model(ort_session)
-        self.ort_session = ort_session
+    def setup_model(self)-> None:
+        super().setup_model()
+        onnx_model=f'{CHECKPOINTS_DIR}/metric3d/v3-L-ONNX/model.onnx'
+
+        providers = [
+            ("CUDAExecutionProvider", {"device_id": "0"})
+        ]
+        ort_session = ort.InferenceSession(onnx_model, providers=providers)
+        self.model = ort_session
 
     def infer_depth(self, input_image: str):
         super().infer_depth(input_image)
@@ -31,7 +40,7 @@ class Metric3D(MDE):
             input_size = (544, 1216)
         
             onnx_input, pad_info = self.prepare_input(rgb_image, input_size)
-            outputs = self.ort_session.run(None, {"pixel_values": onnx_input["image"]})
+            outputs = self.model.run(None, {"pixel_values": onnx_input["image"]})
             depth = outputs[0].squeeze()
         
             depth = depth[
@@ -87,3 +96,7 @@ class Metric3D(MDE):
         }
         # Devolver la imagen preparada y la información de padding para su uso posterior en la post-procesamiento
         return onnx_input, pad_info
+    
+    def export_point_cloud_model(self, depth_map, color_image, output_ply_path, mask_points=None, step=4, depth_visual = 20.0):
+        super().export_point_cloud_model(depth_map, color_image, output_ply_path, mask_points=None, step=4, depth_visual = 20.0)
+        return export_point_cloud_meters(depth_map, color_image, output_ply_path, self.model_name,fx=None, fy=None, cx=None, cy=None, mask_points=mask_points,step=step, depth_visual= depth_visual)

@@ -3,6 +3,7 @@ import torch
 import cv2
 from PIL import Image
 from app.core.config import DEVICE
+from app.functions.save_point_cloud import export_point_cloud_relative
 
 class MidasV3(MDE):
     def __init__(self):
@@ -43,3 +44,6 @@ class MidasV3(MDE):
         except Exception as e:
             print(f"Error en {input_image}: {e}")
             return None
+    def export_point_cloud_model(self, depth_map, color_image, output_ply_path, mask_points=None, step=4, depth_visual = 20.0):
+        super().export_point_cloud_model(depth_map, color_image, output_ply_path, mask_points=mask_points, step=step, depth_visual = depth_visual)
+        return export_point_cloud_relative(depth_map, color_image, output_ply_path, mask_points, step, depth_visual)

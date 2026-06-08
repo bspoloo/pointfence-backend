@@ -8,10 +8,11 @@ from app.core.models.MDE.mde import MDE
 from app.core.models.MDE.depth_anything import DepthAnything_V2
 from app.core.classes.models_manager import ModelManager
 from app.core.classes.mask_manager import MaskManager
-from app.functions.save_point_cloud import export_point_cloud
+from app.functions.save_point_cloud import export_point_cloud_relative
 from app.core.classes.connection_manager import ConnectionManager
 import numpy as np
 import cv2
+import traceback
 
 
 async def send_poinst_cloud_unreal(image: MatLike, mask: MatLike | None , config, filenames: Tuple[str, str]):
@@ -37,8 +38,8 @@ async def send_poinst_cloud_unreal(image: MatLike, mask: MatLike | None , config
 
         mde: MDE = ModelManager().get_mde(str(config["model"]))
         mde.setup_model()
+        
         depth = mde.infer_depth(output_image)
-        depth = cv2.resize(depth, (h_orig, w_orig), interpolation=cv2.INTER_CUBIC)
 
         if depth is None:
             return {
@@ -52,7 +53,6 @@ async def send_poinst_cloud_unreal(image: MatLike, mask: MatLike | None , config
             interpolation=cv2.INTER_CUBIC
         )
         
-        
         points = mask_manger.get_point_mask(output_mask) if mask is not None else None
 
         os.makedirs(
@@ -60,7 +60,7 @@ async def send_poinst_cloud_unreal(image: MatLike, mask: MatLike | None , config
             exist_ok=True
         )
 
-        points_3d, colors = export_point_cloud(
+        points_3d, colors = mde.export_point_cloud_model(
             depth_map=depth,
             color_image=image,
             output_ply_path=os.path.join(UPLOAD_DIR,"points", config["model"],f"{filenames[0].split(".")[0]}_{config["step"]}_{config["depth_visual"]}_{"image" if mask is None else "points"}.ply"),
@@ -70,11 +70,12 @@ async def send_poinst_cloud_unreal(image: MatLike, mask: MatLike | None , config
         )
 
         success = await manager.send_point_cloud_binary(points_3d, colors)
-
+        mde.clear_memory()
         del depth, mde
 
     except Exception as e:
         print(f"[ERROR] {e}")
+        traceback.print_exc()
         return {
             "status": "error",
             "message": e

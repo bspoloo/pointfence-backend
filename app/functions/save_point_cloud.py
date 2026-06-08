@@ -44,9 +44,9 @@ def save_point_cloud(depth, points, save_path,model):
     print(f"PLY guardado en: {ply_path}")
 
 
-def export_point_cloud(depth_map, color_image, output_ply_path, mask_points=None, step=4, depth_visual = 20.0):
-
+def export_point_cloud_relative(depth_map, color_image, output_ply_path, mask_points=None, step=4, depth_visual = 20.0):
     h, w = depth_map.shape
+    print(depth_visual)
 
     if mask_points is not None:
 
@@ -157,7 +157,7 @@ def export_point_cloud(depth_map, color_image, output_ply_path, mask_points=None
         )
 
 
-def export_point_cloud_meters(depth_map, color_image, output_ply_path, name_model,fx=None, fy=None, cx=None, cy=None, mask_points=None,step=4):
+def export_point_cloud_meters(depth_map, color_image, output_ply_path, name_model,fx=None, fy=None, cx=None, cy=None, mask_points=None,step=4, depth_visual = 20.0):
 
     print(f"Generando nube {name_model}...")
 
@@ -237,6 +237,12 @@ def export_point_cloud_meters(depth_map, color_image, output_ply_path, name_mode
     points_3d = points_3d[valid_mask]
     colors = colors[valid_mask]
 
+    points_3d *= 3000.0
+    center = np.median(points_3d, axis=0)
+    points_3d -= center
+
+    colors = colors[valid_mask]
+
     num_points = len(points_3d)
 
     print(f"Puntos válidos: {num_points}")
@@ -279,3 +285,7 @@ def export_point_cloud_meters(depth_map, color_image, output_ply_path, name_mode
         vertex_data['b'] = colors[:, 2]
 
         f.write(vertex_data.tobytes())
+        return (
+                points_3d.astype(np.float32),
+                colors.astype(np.uint8),
+        )

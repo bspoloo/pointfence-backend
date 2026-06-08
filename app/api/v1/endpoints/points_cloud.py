@@ -17,7 +17,7 @@ async def sends_points_cloud(
     configs: str = Form(...)
 ):
     config = json.loads(configs)
-
+    print(config)
     if not config:
         return {
             "status": "error",
