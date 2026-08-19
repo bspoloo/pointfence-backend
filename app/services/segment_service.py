@@ -2,16 +2,18 @@ from typing import Tuple, List
 from cv2.typing import MatLike
 import cv2
 import numpy as np
-from app.core.models.sam_predictor.sam_predictor import SAMPredictor
+from app.core.models.sam_predictor.sam_predictor import SAMPredictorModel
 from app.core.config import UPLOAD_DIR
 from fastapi.responses import FileResponse
 import os
 
-def segment_image_procesed(image: MatLike, filename: str, coords: Tuple[List[int], List[int]]):
+
+def segment_image_procesed(image: MatLike,filename: str,coords: Tuple[List[int], List[int]]):
     h, w = image.shape[:2]
+
     xs = np.array(coords[0], dtype=int)
     ys = np.array(coords[1], dtype=int)
-    
+
     valid_mask = (
         (xs >= 0) & (xs < w) &
         (ys >= 0) & (ys < h)
@@ -22,31 +24,69 @@ def segment_image_procesed(image: MatLike, filename: str, coords: Tuple[List[int
 
     if len(xs) == 0:
         print("[WARNING] Sin puntos válidos")
-        return
+        return None
 
     input_points = np.column_stack((xs, ys))
     input_labels = np.ones(len(input_points))
 
     try:
-        sam_predictor : SAMPredictor = SAMPredictor()
+        sam_predictor: SAMPredictorModel = SAMPredictorModel()
         sam_predictor.set_up_model()
-        sam_predictor.set_image(image)
-        mask = sam_predictor.predict_mask(input_points, input_labels)
-        sam_predictor.clear_memory()
-        os.makedirs(UPLOAD_DIR, exist_ok=True)
-        output_mask = os.path.join(
-            UPLOAD_DIR+"/masks",
-            filename.replace(".jpg", "_mask.png")
+        image_rgb = sam_predictor.set_image(image)
+        mask = sam_predictor.predict_mask(
+            input_points,
+            input_labels
         )
+        sam_predictor.clear_memory()
+
+        masks_dir = os.path.join(UPLOAD_DIR, "masks")
+        images_dir = os.path.join(UPLOAD_DIR, "images")
+        objects_dir = os.path.join(UPLOAD_DIR, "objects")
+
+        os.makedirs(masks_dir, exist_ok=True)
+        os.makedirs(images_dir, exist_ok=True)
+        os.makedirs(objects_dir, exist_ok=True)
+
+        base_name = os.path.splitext(filename)[0]
+
+        output_mask = os.path.join(
+            masks_dir,
+            f"{base_name}_mask.png"
+        )
+
+        output_image = os.path.join(
+            images_dir,
+            f"{base_name}_image.png"
+        )
+
+        output_object = os.path.join(
+            objects_dir,
+            f"{base_name}_object.png"
+        )
+
         mask_uint8 = (mask.astype(np.uint8)) * 255
-        cv2.imwrite(output_mask, mask_uint8)
+
+        cv2.imwrite(output_mask,mask_uint8)
+        cv2.imwrite(output_image,image_rgb)
+
+        image_rgba = cv2.cvtColor(image_rgb,cv2.COLOR_BGR2BGRA)
+        image_rgba[:, :, 3] = mask_uint8
+        success = cv2.imwrite(output_object,image_rgba)
+
+        if not success:
+            print("[ERROR] No se pudo guardar el objeto")
+            return None
+
+        print(f"[INFO] Mask: {output_mask}")
+        print(f"[INFO] Image: {output_image}")
+        print(f"[INFO] Object: {output_object}")
 
     except Exception as e:
-        print(f"[ERROR] {e}")
-        return
+        print(f"[ERROR] {type(e).__name__}: {e}")
+        return None
     
     return FileResponse(
-        path=output_mask,
+        path=output_object,
         media_type="image/png",
-        filename=os.path.basename(output_mask)
+        filename=os.path.basename(output_object)
     )
