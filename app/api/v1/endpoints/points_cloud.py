@@ -11,11 +11,7 @@ router = APIRouter()
 manager = ConnectionManager()
 
 @router.post("/generate")
-async def sends_points_cloud(
-    image: UploadFile = File(...),
-    mask: UploadFile = File(None),
-    configs: str = Form(...)
-):
+async def sends_points_cloud(image: UploadFile = File(...),mask: UploadFile = File(None),configs: str = Form(...)):
     config = json.loads(configs)
 
     if not config:
@@ -41,16 +37,3 @@ async def sends_points_cloud(
         config,
         (image.filename, mask.filename if mask else None)
     )
-
-@router.websocket("/ws/unreal")
-async def websocket_unreal_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            print(f"Mensaje de UE4: {data}")
-            if data == "READY":
-                await websocket.send_text("ACK")
-    except Exception as e:
-        print(f"Error en conexion: {e}")
-        manager.disconnect(websocket)

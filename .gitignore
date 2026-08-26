@@ -4,9 +4,12 @@ __pycache__/
 venv/
 # the distribution files
 dist/
+.cache/
 build/
 # the egg-info files
 *.egg-info/
 uploads/
+checkpoints /
+*.bin
 *.pth
 *.safetensors
