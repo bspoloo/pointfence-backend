@@ -41,11 +41,9 @@ def segment_image_procesed(image: MatLike,filename: str,coords: Tuple[List[int],
 
         masks_dir = os.path.join(UPLOAD_DIR, "masks")
         images_dir = os.path.join(UPLOAD_DIR, "images")
-        objects_dir = os.path.join(UPLOAD_DIR, "objects")
 
         os.makedirs(masks_dir, exist_ok=True)
         os.makedirs(images_dir, exist_ok=True)
-        os.makedirs(objects_dir, exist_ok=True)
 
         base_name = os.path.splitext(filename)[0]
 
@@ -59,34 +57,21 @@ def segment_image_procesed(image: MatLike,filename: str,coords: Tuple[List[int],
             f"{base_name}_image.png"
         )
 
-        output_object = os.path.join(
-            objects_dir,
-            f"{base_name}_object.png"
-        )
 
         mask_uint8 = (mask.astype(np.uint8)) * 255
 
         cv2.imwrite(output_mask,mask_uint8)
         cv2.imwrite(output_image,image_rgb)
 
-        image_rgba = cv2.cvtColor(image_rgb,cv2.COLOR_BGR2BGRA)
-        image_rgba[:, :, 3] = mask_uint8
-        success = cv2.imwrite(output_object,image_rgba)
-
-        if not success:
-            print("[ERROR] No se pudo guardar el objeto")
-            return None
-
         print(f"[INFO] Mask: {output_mask}")
         print(f"[INFO] Image: {output_image}")
-        print(f"[INFO] Object: {output_object}")
 
     except Exception as e:
         print(f"[ERROR] {type(e).__name__}: {e}")
         return None
     
     return FileResponse(
-        path=output_object,
+        path=output_mask,
         media_type="image/png",
-        filename=os.path.basename(output_object)
+        filename=os.path.basename(output_mask)
     )

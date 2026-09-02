@@ -13,6 +13,7 @@ click==8.4.2
 colorama==0.4.6
 comm==0.2.3
 ConfigArgParse==1.7.5
+custom_rasterizer==0.1
 dash==4.4.1
 dataclasses-json==0.6.7
 debugpy==1.8.21
@@ -120,9 +121,9 @@ sympy==1.13.1
 tifffile==2026.8.16
 tokenizers==0.22.2
 tomlkit==0.14.0
-torch==2.5.1+cu121
-torchaudio==2.5.1+cu121
-torchvision==0.20.1+cu121
+torch==2.6.0+cu124
+torchaudio==2.6.0+cu124
+torchvision==0.21.0+cu124
 tornado==6.5.8
 tqdm==4.70.0
 traitlets==5.16.1
@@ -136,6 +137,7 @@ tzdata==2026.3
 urllib3==2.7.0
 uvicorn==0.52.3
 wcwidth==0.8.2
+websockets==17.0.1
 Werkzeug==3.1.8
 widgetsnbextension==4.0.16
 wrapt==2.3.0
