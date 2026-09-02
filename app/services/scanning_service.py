@@ -44,17 +44,17 @@ async def send_scanned_to_unreal(image: MatLike, mask: MatLike, filename: str):
         output_path = hunyuan.save_mesh(filename)
         hunyuan.clear_memory()
 
-        manager = ConnectionManager()
-        await asyncio.sleep(0.5)
+        # manager = ConnectionManager()
+        # await asyncio.sleep(0.5)
 
-        if output_path and os.path.exists(output_path):
-            success = await manager.send_glb_file(output_path)
-            if success:
-                print(f"Archivo GLB enviado a Unreal: {output_path}")
-            else:
-                print(f"Error enviando archivo GLB a Unreal")
-        else:
-            print(f"Archivo GLB no encontrado: {output_path}")
+        # if output_path and os.path.exists(output_path):
+        #     success = await manager.send_glb_file(output_path)
+        #     if success:
+        #         print(f"Archivo GLB enviado a Unreal: {output_path}")
+        #     else:
+        #         print(f"Error enviando archivo GLB a Unreal")
+        # else:
+        #     print(f"Archivo GLB no encontrado: {output_path}")
 
     except Exception as e:
         print(f"[ERROR] {type(e).__name__}: {e}")
