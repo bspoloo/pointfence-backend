@@ -13,7 +13,6 @@ click==8.4.2
 colorama==0.4.6
 comm==0.2.3
 ConfigArgParse==1.7.5
-custom_rasterizer==0.1
 dash==4.4.1
 dataclasses-json==0.6.7
 debugpy==1.8.21

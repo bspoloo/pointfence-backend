@@ -9,7 +9,7 @@ build/
 # the egg-info files
 *.egg-info/
 uploads/
-checkpoints /
+# checkpoints/
 *.bin
 *.pth
 *.safetensors

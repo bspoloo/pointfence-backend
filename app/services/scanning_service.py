@@ -15,6 +15,8 @@ import json
 import base64
 import asyncio
 
+manager = ConnectionManager()
+
 def convert_image_to_object(image: MatLike, mask: MatLike, base_name: str)->MatLike | None:
     objects_dir = os.path.join(UPLOAD_DIR, "objects")
 
@@ -32,36 +34,69 @@ def convert_image_to_object(image: MatLike, mask: MatLike, base_name: str)->MatL
 
     return image_rgba
 
-async def send_scanned_to_unreal(image: MatLike, mask: MatLike, filename: str):
+async def send_scanned_to_unreal(
+    image: MatLike,
+    mask: MatLike,
+    filename: str
+):
     try:
-        base_name = filename.split(".")[0]
+
+        base_name = os.path.splitext(filename)[0]
+
         hunyuan: HunyuanModel = HunyuanModel()
+
+        print("Configurando Hunyuan3D...")
+
         hunyuan.set_up_model()
+        print("Convirtiendo imagen a objeto...")
 
-        image_object = Image.fromarray(convert_image_to_object(image, mask, base_name))
+        object_image = convert_image_to_object(
+            image,
+            mask,
+            base_name
+        )
 
-        hunyuan.generate_mesh(image_object)
-        output_path = hunyuan.save_mesh(filename)
+        if object_image is None:
+            raise RuntimeError("No se pudo crear la imagen del objeto.")
+
+        image_object = Image.fromarray(object_image)
+        print("Generando mesh 3D...")
+
+        mesh = hunyuan.generate_mesh(image_object)
+        output_path = hunyuan.save_mesh(base_name)
+
+        if mesh is None:
+            raise RuntimeError("Hunyuan3D no generó ningún mesh.")
+
+        print("Mesh generado correctamente.")
+        print(f"Vertices generados: "f"{len(mesh.vertices)}")
+        print(f"Triángulos generados: "f"{len(mesh.faces)}")
+        print("Enviando mesh a Unreal...")
+
+        success = await manager.send_mesh_binary(mesh)
+
+        if not success:
+            print("No se pudo enviar el mesh a Unreal.")
+
+            return {
+                "status": "500",
+                "message": "No se pudo enviar el mesh a Unreal"
+            }
+
+        print("Mesh enviado correctamente a Unreal.")
+
         hunyuan.clear_memory()
-
-        # manager = ConnectionManager()
-        # await asyncio.sleep(0.5)
-
-        # if output_path and os.path.exists(output_path):
-        #     success = await manager.send_glb_file(output_path)
-        #     if success:
-        #         print(f"Archivo GLB enviado a Unreal: {output_path}")
-        #     else:
-        #         print(f"Error enviando archivo GLB a Unreal")
-        # else:
-        #     print(f"Archivo GLB no encontrado: {output_path}")
+        return {
+            "status": "200",
+            "message": "generado escaneo 3d"
+        }
 
     except Exception as e:
-        print(f"[ERROR] {type(e).__name__}: {e}")
+
+        print(
+            f"[ERROR] {type(e).__name__}: {e}"
+        )
+
         traceback.print_exc()
+
         raise
-    
-    return {
-        "status": "200",
-        "message": "generado escaneo 3d"
-    }

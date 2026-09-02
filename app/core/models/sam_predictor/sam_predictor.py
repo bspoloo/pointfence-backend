@@ -22,11 +22,11 @@ class SAMPredictorModel:
             image,
             cv2.COLOR_BGR2RGB
         )
-        self.predictor.set_image(image_rgb)
+        self.predictor.set_image(image_rgb) # type: ignore
         return image_rgb
 
     def predict_mask(self, input_points: NDArray[np.float64], input_labels: NDArray[np.float64]):
-        masks, scores, logits = self.predictor.predict(
+        masks, scores, logits = self.predictor.predict( # type: ignore
             point_coords=input_points,
             point_labels=input_labels,
             multimask_output=True
