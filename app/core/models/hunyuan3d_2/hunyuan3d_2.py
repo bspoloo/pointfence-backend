@@ -46,12 +46,6 @@ class HunyuanModel:
 
         self.clear_mesh_pipeline()
 
-        # self.pipeline_text_gen = Hunyuan3DPaintPipeline.from_pretrained(
-        #     model_path=str(CHECKPOINTS_DIR),
-        #     subfolder="hunyuan3d-paint-v2-0",
-        # )
-        # mesh = self.pipeline_text_gen(self.mesh,image=image)
-        # self.clear_paint_pipeline()
         return self.mesh
 
     def clear_mesh_pipeline(self):
@@ -82,25 +76,32 @@ class HunyuanModel:
             torch.cuda.empty_cache()
             torch.cuda.ipc_collect()
 
-    def clear_memory(self)->None:
+    def clear_memory(self) -> None:
+
         if self.pipeline_mesh_gen is not None:
+
             del self.pipeline_mesh_gen
 
+            self.pipeline_mesh_gen = None
+
         if self.pipeline_text_gen is not None:
+
             del self.pipeline_text_gen
 
-        del self.mesh
-        
-        self.pipeline_mesh_gen = None
-        self.pipeline_text_gen = None
+            self.pipeline_text_gen = None
 
-        self.mesh = None
+        if self.mesh is not None:
+
+            del self.mesh
+
+            self.mesh = None
 
         gc.collect()
 
         if torch.cuda.is_available():
+
             torch.cuda.empty_cache()
-            torch.cuda.ipc_collect()
+        torch.cuda.ipc_collect()
 
     def save_mesh(self, filename: str)-> str:
 
