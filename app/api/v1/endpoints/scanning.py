@@ -1,14 +1,18 @@
 from fastapi import APIRouter, UploadFile, File, Form, WebSocket
 from app.core.classes.connection_manager import ConnectionManager
 from app.schemas.file_schema import FileSchema
-from app.services.scanning_service import send_scanned_to_unreal
+from app.services.scanning_service import send_scanned_to_unreal, send_file_to_unreal
 import numpy as np
 import cv2
 import json
 from PIL import Image
+from pydantic import BaseModel
 
 router = APIRouter()
 manager = ConnectionManager()
+
+class ScannedModel(BaseModel):
+    filename: str
 
 @router.post("/generate")
 async def scanning_image(image: UploadFile = File(...), mask: UploadFile = File(...)):
@@ -25,6 +29,10 @@ async def scanning_image(image: UploadFile = File(...), mask: UploadFile = File(
 
     return await send_scanned_to_unreal(image_bgr, msk_bgr ,image.filename)
 
+@router.post("/filename")
+async def scanning_image(data: ScannedModel):
+    return await send_file_to_unreal(data.filename)
+
 @router.websocket("/ws/unreal")
 async def websocket_unreal_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
@@ -37,3 +45,4 @@ async def websocket_unreal_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Error en conexion: {e}")
         manager.disconnect(websocket)
+

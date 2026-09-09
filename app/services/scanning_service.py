@@ -10,10 +10,12 @@ from fastapi.responses import FileResponse
 import os
 from PIL import Image
 import traceback
-from app.core.config import UPLOAD_DIR
+from app.core.config import UPLOAD_DIR, BASE_DIR
 import json
 import base64
 import asyncio
+import trimesh
+import traceback
 
 manager = ConnectionManager()
 
@@ -34,27 +36,14 @@ def convert_image_to_object(image: MatLike, mask: MatLike, base_name: str)->MatL
 
     return image_rgba
 
-async def send_scanned_to_unreal(
-    image: MatLike,
-    mask: MatLike,
-    filename: str
-):
+async def send_scanned_to_unreal(image: MatLike,mask: MatLike,filename: str):
     try:
 
         base_name = os.path.splitext(filename)[0]
 
         hunyuan: HunyuanModel = HunyuanModel()
-
-        print("Configurando Hunyuan3D...")
-
         hunyuan.set_up_model()
-        print("Convirtiendo imagen a objeto...")
-
-        object_image = convert_image_to_object(
-            image,
-            mask,
-            base_name
-        )
+        object_image = convert_image_to_object(image,mask,base_name)
 
         if object_image is None:
             raise RuntimeError("No se pudo crear la imagen del objeto.")
@@ -93,10 +82,51 @@ async def send_scanned_to_unreal(
 
     except Exception as e:
 
-        print(
-            f"[ERROR] {type(e).__name__}: {e}"
-        )
+        print(f"[ERROR] {type(e).__name__}: {e}")
+        traceback.print_exc()
+        raise
 
+async def send_file_to_unreal(filename: str):
+    try:
+        models_dir = os.path.join(BASE_DIR, UPLOAD_DIR,"scanings")
+        file_path = os.path.join(models_dir, filename)
+
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f"No se encontró el mesh: {file_path}")
+
+        print(f"Cargando mesh desde: {file_path}")
+
+        mesh = trimesh.load(file_path, force="mesh")
+        if mesh is None:
+            raise RuntimeError("No se pudo cargar el mesh.")
+
+        print("Mesh cargado correctamente.")
+        print(f"Vertices: {len(mesh.vertices)}")
+        print(f"Triángulos: {len(mesh.faces)}")
+
+        print("Enviando mesh a Unreal...")
+        success = await manager.send_mesh_binary(mesh)
+
+        if not success:
+
+            print("No se pudo enviar el mesh a Unreal.")
+            return {
+                "status": "500",
+                "message": "No se pudo enviar el mesh a Unreal"
+            }
+
+        print("Mesh enviado correctamente a Unreal.")
+        return {
+            "status": "200",
+            "message": "Mesh enviado correctamente",
+            "filename": filename
+        }
+
+    except Exception as e:
+        print(f"[ERROR] {type(e).__name__}: {e}")
         traceback.print_exc()
 
-        raise
+        return {
+            "status": "500",
+            "message": str(e)
+        }
