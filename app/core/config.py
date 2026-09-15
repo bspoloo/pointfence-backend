@@ -2,7 +2,10 @@
 import torch
 from pathlib import Path
 import sys
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 # SAM CONFIGURATION
 SAM_MODEL_NAME = "SAM_MASKS"
 MODEL_TYPE = "vit_l"
@@ -16,3 +19,5 @@ CHECKPOINTS_DIR = BASE_DIR / "checkpoints"
 
 HY3DGEN_PATH = Path(__file__).resolve().parent.parent / "core" / "models" / "hunyuan3d_2"
 sys.path.insert(0, str(HY3DGEN_PATH))
+
+DATABASE_URL = os.getenv("DATABASE_URL")
