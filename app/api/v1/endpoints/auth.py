@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, WebSocket, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, WebSocket, status
+from sqlalchemy.orm import Session
+from app.db.database import get_db
 from app.schemas.auth import LoginRequest, TokenResponse
 from app.schemas.file_schema import FileSchema
 from app.services.auth_service import login_request
@@ -12,12 +14,12 @@ import json
 router = APIRouter()
 manager = ConnectionManager()
 
-@router.post("/auth/login", data= TokenResponse)
-async def login(data: LoginRequest):
+@router.post("/login", response_model= TokenResponse)
+async def login(data: LoginRequest, db: Session = Depends(get_db)):
     try:
-        return login_request(data)
+        return await login_request(data, db)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error interno del servidor",
+            detail=f"[EROR] {e}",
         )

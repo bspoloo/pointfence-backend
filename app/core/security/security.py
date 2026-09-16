@@ -28,7 +28,7 @@ def create_access_token(user_id: int):
         "exp": expire,
     }
 
-    return jwt.decode(
+    return jwt.encode(
         payload,
         JWT_SECRET_KEY,
         algorithm=JWT_ALGORITHM,

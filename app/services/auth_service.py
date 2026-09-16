@@ -6,10 +6,10 @@ from app.schemas.auth import LoginRequest
 from app.models.user import User
 from app.schemas.auth import LoginRequest, TokenResponse
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
-async def login_request(data: LoginRequest, db: Session = get_db()):
+async def login_request(data: LoginRequest, db: Session):
 
     user = db.scalar(
         select(User)
