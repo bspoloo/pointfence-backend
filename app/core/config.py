@@ -21,3 +21,6 @@ HY3DGEN_PATH = Path(__file__).resolve().parent.parent / "core" / "models" / "hun
 sys.path.insert(0, str(HY3DGEN_PATH))
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "60"))

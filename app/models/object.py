@@ -15,4 +15,4 @@ class Object(Base):
 
     image_mask_id: Mapped[int] = mapped_column(ForeignKey("image_masks.id"), unique=True, nullable=False)
 
-    image_mask: Mapped["ImageMask | None"] = relationship(back_populates="image_mask")
+    image_mask: Mapped["ImageMask | None"] = relationship(back_populates="object", uselist=False)

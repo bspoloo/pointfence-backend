@@ -13,3 +13,5 @@ class User(Base):
 
     images: Mapped[List["Image"]] = relationship(back_populates="user")
     masks: Mapped[List["Mask"]] = relationship(back_populates="user")
+
+    player: Mapped["Player | None"] = relationship(back_populates="user",uselist=False)

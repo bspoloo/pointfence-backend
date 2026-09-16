@@ -18,3 +18,6 @@ class ImageMask(Base):
 
     image: Mapped["Image"] = relationship(back_populates="image_mask")
     mask: Mapped["Mask"] = relationship(back_populates="image_mask")
+
+    object: Mapped["Object | None"] = relationship(back_populates="image_mask")
+
