@@ -11,6 +11,6 @@ class Player(Base):
 
     player_name: Mapped[str] = mapped_column(String(length=50), unique=True, nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, nullable=False)
-    user: Mapped["User | None"] = relationship(back_populates="player")
+    user: Mapped["User | None"] = relationship(back_populates="player", uselist=False)
 
     savings_status: Mapped[List["SavingStatus"]] = relationship(back_populates="player")

@@ -15,4 +15,4 @@ class Scanning(Base):
 
     object_id: Mapped[int] = mapped_column(ForeignKey("objects.id"), unique=True, nullable=False)
 
-    object: Mapped["Object | None"] = relationship(back_populates="object")
+    object: Mapped["Object | None"] = relationship(back_populates="scanning", uselist=False)

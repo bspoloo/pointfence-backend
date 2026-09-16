@@ -6,6 +6,7 @@ from app.models.image_mask import ImageMask
 from app.models.object import Object
 from app.models.saving_status import SavingStatus
 from app.models.level import Level
+from app.models.scaning import Scanning
 
 __all__ = [
     "User",
@@ -16,4 +17,5 @@ __all__ = [
     "Object",
     "Level",
     "SavingStatus",
+    "Scanning"
 ]

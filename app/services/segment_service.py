@@ -2,13 +2,19 @@ from typing import Tuple, List
 from cv2.typing import MatLike
 import cv2
 import numpy as np
+from sqlalchemy.orm import Session
 from app.core.models.sam_predictor.sam_predictor import SAMPredictorModel
 from app.core.config import UPLOAD_DIR
 from fastapi.responses import FileResponse
 import os
+from copy import copy
+from app.models.user import User
+from app.schemas.create_file import CreateFile
+from app.services.files_services import save_image, save_mask
 
 
-def segment_image_procesed(image: MatLike,filename: str,coords: Tuple[List[int], List[int]]):
+async def segment_image_procesed(image: MatLike,filename: str,coords: Tuple[List[int], List[int]], db: Session, user: User):
+    print(coords)
     h, w = image.shape[:2]
 
     xs = np.array(coords[0], dtype=int)
@@ -57,9 +63,29 @@ def segment_image_procesed(image: MatLike,filename: str,coords: Tuple[List[int],
             f"{base_name}_image.png"
         )
 
-
         mask_uint8 = (mask.astype(np.uint8)) * 255
 
+        user_i = copy(user)
+        await save_mask(
+            file = CreateFile(
+                filename=base_name,
+                extension="png",
+                url=output_mask,
+                user_id=user_i.id
+            ),
+            db=db,
+        )
+
+        await save_image(
+            file = CreateFile(
+                filename=base_name,
+                extension="png",
+                url=output_mask,
+                user_id=user_i.id
+            ),
+            db=db,
+        )
+        
         cv2.imwrite(output_mask,mask_uint8)
         cv2.imwrite(output_image,image_rgb)
 

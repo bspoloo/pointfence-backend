@@ -10,6 +10,7 @@ import jwt
 from jwt.exceptions import InvalidTokenError
 
 from app.db.database import get_db
+from app.models.player import Player
 from app.models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -21,11 +22,34 @@ def hash_password(password:str):
 def verify_password(password: str, hashed_password: str)-> bool:
     return password_hash.verify(password, hashed_password)
 
-def create_access_token(user_id: int):
+def create_access_token(user: User):
     expire = datetime.now(timezone.utc) + timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {
-        "sub": str(user_id),
+        "sub": str(user.id),
         "exp": expire,
+        "user": {
+            "names": user.names,
+            "email": user.email,
+            "player_name": user.player.player_name
+        }
+    }
+
+    return jwt.encode(
+        payload,
+        JWT_SECRET_KEY,
+        algorithm=JWT_ALGORITHM,
+    )
+
+def create_refresh_token(user: User):
+    expire = datetime.now(timezone.utc) + timedelta(minutes=(JWT_ACCESS_TOKEN_EXPIRE_MINUTES + 30))
+    payload = {
+        "sub": str(user.id),
+        "exp": expire,
+        "user": {
+            "names": user.names,
+            "email": user.email,
+            "player_name": user.player.player_name
+        }
     }
 
     return jwt.encode(

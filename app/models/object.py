@@ -1,5 +1,3 @@
-
-
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,3 +14,5 @@ class Object(Base):
     image_mask_id: Mapped[int] = mapped_column(ForeignKey("image_masks.id"), unique=True, nullable=False)
 
     image_mask: Mapped["ImageMask | None"] = relationship(back_populates="object", uselist=False)
+    scanning: Mapped["Scanning | None"] = relationship(back_populates="object",uselist=False)
+    
